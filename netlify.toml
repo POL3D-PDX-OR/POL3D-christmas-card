@@ -1,0 +1,9 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+# Optional: nicer URL for the function
+[[redirects]]
+  from = "/api/send-card"
+  to = "/.netlify/functions/send-card"
+  status = 200
