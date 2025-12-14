@@ -912,22 +912,14 @@ async function exportPNG(){
   const ctx = c.getContext("2d");
 
   // background
-// background (bardziej biały, mniej kremowy)
-ctx.fillStyle = "#ffffff";
-ctx.fillRect(0,0,outW,outH);
+  ctx.fillStyle = "#fff7ea";
+  ctx.fillRect(0,0,outW,outH);
 
-// zielony glow
-const g1 = ctx.createRadialGradient(outW*0.18,outH*0.28, 10, outW*0.18,outH*0.28, Math.max(outW,outH)*0.95);
-g1.addColorStop(0, "rgba(35, 140, 85, .28)");
-g1.addColorStop(1, "rgba(255,255,255,0)");
-ctx.fillStyle = g1; ctx.fillRect(0,0,outW,outH);
-
-// czerwony glow
-const g2 = ctx.createRadialGradient(outW*0.82,outH*0.22, 10, outW*0.82,outH*0.22, Math.max(outW,outH)*0.95);
-g2.addColorStop(0, "rgba(180, 25, 35, .22)");
-g2.addColorStop(1, "rgba(255,255,255,0)");
-ctx.fillStyle = g2; ctx.fillRect(0,0,outW,outH);
-
+  // warm gradients
+  const g1 = ctx.createRadialGradient(outW*0.2,outH*0.3, 10, outW*0.2,outH*0.3, Math.max(outW,outH)*0.9);
+  g1.addColorStop(0, "rgba(255,210,230,.65)");
+  g1.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g1; ctx.fillRect(0,0,outW,outH);
 
   const g2 = ctx.createRadialGradient(outW*0.8,outH*0.22, 10, outW*0.8,outH*0.22, Math.max(outW,outH)*0.9);
   g2.addColorStop(0, "rgba(255,230,160,.72)");
