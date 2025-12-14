@@ -391,10 +391,9 @@
         <div class="watermark" id="wm"></div>
         <div class="lights" id="lights"></div>
         <div class="card-ui">
-          <div class="headline">Wesołych Świąt życzy zespół POL3D!</div>
+          <div class="headline">Wesołych Świąt od POL3D!</div>
           <div class="deck">
-            POL3D to projekt młodzieży z Polskiej Szkoły w Portland.
-Uczymy się projektowania, druku 3D i przedsiębiorczości, tworząc własne produkty i pomysły.
+            POL3D to projekt młodzieży z Polskiej Szkoły w Portland: od pomysłu, przez prototyp, aż po sprzedaż. Z tej okazji — baw się kartką i rozsyłaj dalej.
           </div>
           <div class="tofrom">
             <div class="chip"><b>🌟 Dla:</b><input id="toField" value="Rodziny i Przyjaciół"/></div>
@@ -948,12 +947,11 @@ async function exportPNG(){
   ctx.fillStyle = "#173b2e";
   ctx.textAlign="center";
   ctx.font = "900 "+Math.round(outW*0.055)+"px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText("Wesołych Świąt życzy zespół POL3D!", outW/2, outH*0.14);
+  ctx.fillText("Wesołych Świąt od POL3D!", outW/2, outH*0.14);
 
   ctx.fillStyle = "#3a3a3a";
   ctx.font = "500 "+Math.round(outW*0.022)+"px ui-sans-serif, system-ui, Segoe UI";
-  const deck = "POL3D to projekt młodzieży z Polskiej Szkoły w Portland.
-Uczymy się projektowania, druku 3D i przedsiębiorczości, tworząc własne produkty i pomysły.";
+  const deck = "POL3D to projekt młodzieży z Polskiej Szkoły w Portland: od pomysłu, przez prototyp, aż po sprzedaż. Z tej okazji — baw się kartką i rozsyłaj dalej.";
   wrapText(ctx, deck, outW/2, outH*0.19, outW*0.78, Math.round(outW*0.03));
 
   const toV = document.getElementById("toField").value;
