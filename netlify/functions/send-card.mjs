@@ -55,7 +55,7 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const origin = event.headers?.origin || event.headers?.Origin;
   const cors = corsHeaders(origin);
 
@@ -77,9 +77,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: { ...JSON_HEADERS, ...cors },
-      body: JSON.stringify({
-        error: "Server misconfigured: missing RESEND_API_KEY env var.",
-      }),
+      body: JSON.stringify({ error: "Server misconfigured: missing RESEND_API_KEY env var." }),
     };
   }
 
@@ -135,52 +133,70 @@ exports.handler = async (event) => {
     return {
       statusCode: 413,
       headers: { ...JSON_HEADERS, ...cors },
-      body: JSON.stringify({
-        error: "Payload too large. Please export a smaller format/resolution.",
-      }),
+      body: JSON.stringify({ error: "Payload too large. Please export a smaller format/resolution." }),
     };
   }
 
   // ========= TREŚĆ WIADOMOŚCI =========
+  const hello = "Cześć,";
   const senderNote = "Ktoś z Twoich bliskich postanowił złożyć Ci świąteczne życzenia z naszym udziałem.";
-  const ctaLine1 = "📎 Otwórz załączoną kartkę, aby zobaczyć świąteczne życzenia.";
-  const ctaLine2 = "Zrób własną kartkę na pol3d.com: ułóż układankę z naszym logo, dodaj tekst, naklejki i zdjęcie — a gotową kartkę wyślij dalej.";
 
-  const about1 = "POL3D — Polska w trzech wymiarach — to grupa polskich nastolatków działająca przy Polskiej Szkole w Portland (Oregon, USA), powstała jako inicjatywa młodych przedsiębiorców.";
-  const about2 = "Wspólnie tworzymy projekty, które rozwijają nasze umiejętności, kreatywność i zaangażowanie w życie lokalnej Polonii.";
+  const ctaLine1 = "📎 Otwórz załączoną kartkę, aby zobaczyć życzenia.";
+  const ctaLine2 = "Możesz się zrewanżować: zrób własną kartkę na pol3d.com.";
+  const ctaLine3 = "Ułóż układankę z naszym logo, dodaj tekst, naklejki i zdjęcie — a gotową kartkę wyślij dalej.";
 
-  const do1 = "Projektujemy i wykonujemy gadżety oraz upominki 3D, które w nowoczesny sposób promują polską kulturę i tradycję.";
-  const do2 = "Działamy w trzech zespołach: design (modele i koncepcje), technicznym (digitalizacja i druk 3D) oraz marketingowym (promocja i kontakt z odbiorcami).";
+  const about1 =
+    "POL3D — Polska w trzech wymiarach — to grupa polskich nastolatków działająca przy Polskiej Szkole w Portland (Oregon, USA), powstała jako inicjatywa młodych przedsiębiorców.";
+  const about2 =
+    "Wspólnie tworzymy projekty, które rozwijają nasze umiejętności, kreatywność i zaangażowanie w życie lokalnej Polonii.";
+
+  const do1 =
+    "Projektujemy i wykonujemy gadżety oraz upominki 3D, które w nowoczesny sposób promują polską kulturę i tradycję.";
+  const do2 =
+    "Działamy w trzech zespołach: design (modele i koncepcje), technicznym (digitalizacja i druk 3D) oraz marketingowym (promocja i kontakt z odbiorcami).";
 
   const grantUrl = "https://przedsiebiorczydzek.pl/polonia/";
-  const story1 = "Naszą przygodę rozpoczęliśmy w październiku 2025 roku dzięki grantowi w ramach programu „Polonijna Akademia Przedsiębiorczości”, realizowanego w ramach sprawowania opieki Senatu RP nad Polonią i Polakami za granicą.";
-  const story2 = "Polska Szkoła w Portland otrzymała w tym programie wsparcie na zakup drukarki 3D i materiałów, a od tego momentu wszystko, co tworzymy, jest efektem naszej własnej pracy, pomysłów i zaangażowania.";
+  const story1 =
+    "Naszą przygodę rozpoczęliśmy w październiku 2025 roku dzięki grantowi w ramach programu „Polonijna Akademia Przedsiębiorczości”, realizowanego w ramach sprawowania opieki Senatu RP nad Polonią i Polakami za granicą.";
+  const story2 =
+    "Polska Szkoła w Portland otrzymała w tym programie wsparcie na zakup drukarki 3D i materiałów, a od tego momentu wszystko, co tworzymy, jest efektem naszej własnej pracy, pomysłów i zaangażowania.";
 
-  const proof1 = "Stworzyliśmy własne logo, identyfikację wizualną i stronę internetową, a pierwsze projekty przekształciliśmy w realne produkty wydrukowane na drukarce 3D.";
-  const proof2 = "Naszym pierwszym publicznym debiutem był Kiermasz Świąteczny w Domu Polskim w Portland (14 grudnia 2025), gdzie zaprezentowaliśmy nasze produkty społeczności polonijnej.";
-  const filmUrl = "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
+  const proof1 =
+    "Stworzyliśmy własne logo, identyfikację wizualną i stronę internetową, a pierwsze projekty przekształciliśmy w realne produkty wydrukowane na drukarce 3D.";
+  const proof2 =
+    "Naszym pierwszym publicznym debiutem był Kiermasz Świąteczny w Domu Polskim w Portland (14 grudnia 2025), gdzie zaprezentowaliśmy nasze produkty społeczności polonijnej.";
+  const filmUrl =
+    "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
 
-  const next1 = "To dopiero początek. W planach mamy uruchomienie sklepu internetowego oraz obecność na Polskim Festiwalu w Portland (Oregon).";
-const contact = `
-<p>
-📩 Kontakt:<br>
-<a href="mailto:info.pol3d@gmail.com">info.pol3d@gmail.com</a><br>
-<a href="mailto:szkolapolskapdx@gmail.com">szkolapolskapdx@gmail.com</a>
-</p>
-`;
+  const next1 =
+    "To dopiero początek. W planach mamy uruchomienie sklepu internetowego oraz obecność na Polskim Festiwalu w Portland (Oregon).";
 
-  const close1 = "Dziękujemy za chwilę uwagi i życzymy spokojnych, radosnych Świąt oraz wszystkiego dobrego w Nowym Roku.";
-  const sign = "Zespół POL3D — Polska w trzech wymiarach\n przy Polish Cultural Enrichment Program at PLBA - Polska Szkola\nPortland, Oregon";
+  // Kontakt: HTML i tekst osobno (żeby nie „drukować” tagów w mailu)
+  const contactEmail1 = "info.pol3d@gmail.com";
+  const contactEmail2 = "szkolapolskapdx@gmail.com";
+  const contactHtml = `
+    <p style="margin:0 0 8px 0;">
+      📩 <b>Kontakt:</b><br>
+      <a href="mailto:${contactEmail1}">${contactEmail1}</a><br>
+      <a href="mailto:${contactEmail2}">${contactEmail2}</a>
+    </p>
+  `.trim();
+  const contactText = `Kontakt:\n${contactEmail1}\n${contactEmail2}`;
+
+  const close1 =
+    "Dziękujemy za chwilę uwagi i życzymy spokojnych, radosnych Świąt oraz wszystkiego dobrego w Nowym Roku.";
+  const sign =
+    "Zespół POL3D — Polska w trzech wymiarach\nPortland, Oregon";
 
   const html = `
   <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.55; color:#111;">
-    <h2 style="margin:0 0 10px 0;">Serdeczne życzenia od zespołu POL3D</h2>
+    <p style="margin:0 0 10px 0;">${escapeHtml(hello)}</p>
     <p style="margin:0 0 10px 0;">${escapeHtml(senderNote)}</p>
-    <p style="margin:0 0 14px 0;">Cieszymy się, że możemy uczestniczyć w dzieleniu się życzeniami. Życzymy Wesołych Świąt i Szczęśliwego Nowego Roku.</p>
 
     <div style="margin:14px 0 18px 0; padding:12px 14px; border:1px solid #e7e7e7; border-radius:12px; background:#fafafa;">
       <p style="margin:0 0 8px 0;"><b>${escapeHtml(ctaLine1)}</b></p>
-      <p style="margin:0;">${escapeHtml(ctaLine2)}</p>
+      <p style="margin:0 0 8px 0;">${escapeHtml(ctaLine2)}</p>
+      <p style="margin:0;">${escapeHtml(ctaLine3)}</p>
     </div>
 
     <h3 style="margin:18px 0 8px 0;">Kim jesteśmy</h3>
@@ -198,25 +214,25 @@ const contact = `
     <h3 style="margin:18px 0 8px 0;">Pierwsze kroki i debiut</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof1)}</p>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof2)}</p>
-    <p style="margin:0 0 8px 0;">🎥 Obejrzyj nasz pierwszy Film promocyjny: <a href="${filmUrl}">${filmUrl}</a></p>
+    <p style="margin:0 0 8px 0;">🎥 Film (placeholder): <a href="${filmUrl}">${filmUrl}</a></p>
 
     <h3 style="margin:18px 0 8px 0;">Co dalej</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(next1)}</p>
-    <p style="margin:0 0 18px 0;">📩 ${escapeHtml(contact)}</p>
+    ${contactHtml}
 
-    <p style="margin:0 0 8px 0;">${escapeHtml(close1)}</p>
+    <p style="margin:10px 0 8px 0;">${escapeHtml(close1)}</p>
     <p style="margin:0; white-space:pre-line;"><b>${escapeHtml(sign)}</b></p>
   </div>
   `.trim();
 
   const text = [
-    "Serdeczne życzenia od zespołu POL3D",
+    hello,
     "",
     senderNote,
-    "Cieszymy się, że możemy uczestniczyć w dzieleniu się życzeniami. Życzymy Wesołych Świąt i Szczęśliwego Nowego Roku.",
     "",
     ctaLine1,
     ctaLine2,
+    ctaLine3,
     "",
     "Kim jesteśmy",
     about1,
@@ -230,16 +246,17 @@ const contact = `
     story1,
     story2 + " " + grantUrl,
     "",
-    "Dowód działania",
+    "Pierwsze kroki i debiut",
     proof1,
     proof2,
     "Film (placeholder): " + filmUrl,
     "",
     "Co dalej",
     next1,
-    contact,
+    contactText,
     "",
     close1,
+    "",
     sign,
   ].join("\n");
 
