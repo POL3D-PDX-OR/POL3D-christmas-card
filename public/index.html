@@ -199,26 +199,29 @@
     padding:10px 14px;
     box-shadow: 0 16px 28px rgba(0,0,0,.10);
   }
-  .chip b{font-size:14px;}
+  .chip b{font-size:14px; white-space:nowrap;}
   .chip input{
-    width:auto; min-width:240px;
+    width:auto;
+    min-width:240px;
+    max-width:340px;
     background:transparent;
     border:none; color:#2a2a2a;
     padding:0; font-size:14px; outline:none;
   }
 
-  /* stopka dofinansowania (na kartce) */
+  /* stopka dofinansowania (tylko w edytorze) */
   .funding{
     position:absolute;
     left:54px; right:54px; bottom:18px;
     text-align:center;
-    font-size:12px;
+    font-size:14px;
     letter-spacing:.15px;
-    color: rgba(35,55,45,.70);
+    color: rgba(35,55,45,.75);
     text-shadow: 0 1px 0 rgba(255,255,255,.55);
   }
+  .funding a{ color: inherit; font-weight:800; text-decoration: underline; }
 
-  /* sticker elements layer (CRITICAL FIX) */
+  /* sticker elements layer */
   .elem{
     position:absolute;
     left:0; top:0;
@@ -227,7 +230,7 @@
     cursor:grab;
     will-change: transform;
     z-index:10;
-    touch-action:none; /* critical for pointer events */
+    touch-action:none;
   }
   .elem.selected{ outline:2px dashed rgba(80,120,255,.55); outline-offset:8px; border-radius:16px;}
   .elem img{display:block; max-width:none; pointer-events:none;}
@@ -265,7 +268,6 @@
 
   #snow{ position:fixed; inset:0; pointer-events:none; z-index:40; }
 
-  /* error bar */
   .errbar{
     position:fixed; left:16px; right:16px; bottom:16px;
     z-index:120;
@@ -279,7 +281,6 @@
   }
   .errbar code{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px;}
 
-  /* export modal */
   .modal{
     position:fixed; inset:0;
     z-index:200;
@@ -389,9 +390,10 @@
     <details class="section">
       <summary>Rozmiar eksportu <span>▾</span></summary>
       <div class="content">
-        <label>Rozmiar (domyślnie 1080×1080 IG)</label>
+        <label>Rozmiar (domyślnie 1080×1080)</label>
         <select id="formatSel">
           <option value="1080x1080">1080×1080 (Instagram / kwadrat)</option>
+          <option value="1080x1920">1080×1920 (9:16 / Reels, Stories)</option>
           <option value="1920x1080">1920×1080 (HD / 16:9)</option>
           <option value="1200x630">1200×630 (Facebook link / 1.91:1)</option>
           <option value="1600x900">1600×900 (lekki 16:9)</option>
@@ -406,13 +408,17 @@
         <div class="watermark" id="wm"></div>
         <div class="lights" id="lights"></div>
         <div class="card-ui">
-          <div class="headline">Wesołych Świąt od POL3D!</div>
-          <div class="deck">Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.</div>
-          <div class="tofrom">
+          <div class="headline" id="uiHeadline">Wesołych Świąt życzy POL3D.com!</div>
+          <div class="deck" id="uiDeck">Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.</div>
+          <div class="tofrom" id="uiToFrom">
             <div class="chip"><b>🌟 Dla:</b><input id="toField" value="Rodziny i Przyjaciół"/></div>
             <div class="chip"><b>🎁 Od:</b><input id="fromField" value="Zespół POL3D"/></div>
           </div>
-          <div class="funding">Projekt został dofinansowany przez Polonijne Inicjatywy Przedsiębiorcze.</div>
+          <div class="funding" id="uiFunding">
+            Projekt został dofinansowany w ramach programu „Polonijna Akademia Przedsiębiorczości” —
+            <a href="https://przedsiebiorczydzek.pl/polonia/" target="_blank" rel="noopener">przedsiebiorczydzek.pl/polonia/</a>.
+            Polska Szkoła w Portland otrzymała grant na zakup drukarki 3D i materiałów.
+          </div>
         </div>
       </div>
     </div>
@@ -452,6 +458,27 @@
 </div>
 
 <script>
+/* ========= COPY / EDIT SAFE ZONE =========
+ * Te 3 teksty możesz bezpiecznie zmieniać samodzielnie:
+ * - UI_HEADLINE (nagłówek na kartce w edytorze)
+ * - UI_DECK (opis pod nagłówkiem w edytorze)
+ * - UI_FUNDING_HTML (stopka w edytorze; może zawierać linki)
+ *
+ * Uwaga: eksport PNG nie renderuje UI_DECK ani UI_FUNDING — tylko nagłówek + Dla/Od + Twoje naklejki.
+ */
+const UI_HEADLINE = "Wesołych Świąt życzy POL3D.com!";
+const UI_DECK = "Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.";
+const UI_FUNDING_HTML = `
+  Projekt został dofinansowany w ramach programu „Polonijna Akademia Przedsiębiorczości” —
+  <a href="https://przedsiebiorczydzek.pl/polonia/" target="_blank" rel="noopener">przedsiebiorczydzek.pl/polonia/</a>.
+  Polska Szkoła w Portland otrzymała grant na zakup drukarki 3D i materiałów.
+`;
+
+// Apply editable texts
+document.getElementById("uiHeadline").textContent = UI_HEADLINE;
+document.getElementById("uiDeck").textContent = UI_DECK;
+document.getElementById("uiFunding").innerHTML = UI_FUNDING_HTML;
+
 /* ========= ASSETS (by filename) ========= */
 const ASSET_NAMES = {
   watermark: "POL3D_WATERMARK_OUTLINES.png",
@@ -464,7 +491,6 @@ const ASSET_NAMES = {
   emojiO: "POL3D-O-EMIOJI-OCZKO-ANIMA-L.gif"
 };
 
-// map filename -> objectURL (from folder picker or from custom uploads)
 const assetMap = new Map();
 
 /* ========= ERROR UI ========= */
@@ -481,14 +507,11 @@ window.addEventListener("unhandledrejection", (e)=>{ showError("Promise rejectio
 
 /* ========= RESOLVE URL ========= */
 function resolveAsset(name){
-  // 1) if user picked folder -> objectURL
   if(assetMap.has(name)) return assetMap.get(name);
-  // 2) try relative path (works on http://localhost)
   return name;
 }
 function requireAssetOrExplain(name){
   const url = resolveAsset(name);
-  // if running as file:// and asset not in map, warn user
   if(location.protocol === "file:" && !assetMap.has(name)){
     showError("Uruchamiasz z dysku (file://). Aby uniknąć SecurityError przy eksporcie, wybierz folder z assetami w panelu po lewej.", null);
     return null;
@@ -505,7 +528,7 @@ const formatSel = document.getElementById("formatSel");
 const assetStatus = document.getElementById("assetStatus");
 
 let snowOn = true;
-let soundOn = false; // default OFF to avoid AudioContext surprises on some setups
+let soundOn = false;
 
 const state = {
   elems: [],
@@ -629,7 +652,6 @@ function wireDrag(el){
     if(Number(el.dataset.id)!==state.selectedId) return;
     ev.preventDefault();
     const e = state.elems.find(x=>x.id===state.selectedId);
-    // mniejszy krok skali (precyzja dopasowania "O-emoji")
     const ds = ev.deltaY>0 ? -0.02 : 0.02;
     e.s = clamp(e.s + ds, 0.08, 6.0);
   }, {passive:false});
@@ -757,7 +779,6 @@ function applyWatermark(){
   const url = assetMap.has(ASSET_NAMES.watermark) ? assetMap.get(ASSET_NAMES.watermark) : resolveAsset(ASSET_NAMES.watermark);
   wmDiv.style.backgroundImage = `url("${url}")`;
   wmDiv.style.setProperty("--wmSize", "82%");
-  // bez pochylenia
   wmDiv.style.setProperty("--wmRot", "0deg");
 }
 
@@ -781,7 +802,7 @@ function hoodFilterCSS(mode){
   if(mode==="cool") return "hue-rotate(210deg) saturate(1.10) brightness(1.06) drop-shadow(0 16px 18px rgba(0,0,0,.22))";
   return "drop-shadow(0 16px 18px rgba(0,0,0,.22))";
 }
-document.getElementById("hoodColor").addEventListener("change", ()=>{});
+document.getElementById("hoodColor").addEventListener("change", ()=>{ renderAll(); });
 
 /* ========= TEXT ADD ========= */
 document.getElementById("addTextBtn").addEventListener("click", ()=>{
@@ -824,7 +845,6 @@ function bring(delta){
   const e=sel(); if(!e) return;
   e.z += delta;
 }
-// mniejszy krok przy +/- (precyzja)
 document.getElementById("bPlus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s+0.04,0.08,6); };
 document.getElementById("bMinus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s-0.04,0.08,6); };
 document.getElementById("bRot").onclick=()=>{ const e=sel(); if(e) e.r = (e.r+10)%360; };
@@ -847,14 +867,16 @@ function resizeSnow(){
   snow.style.width = innerWidth+"px";
   snow.style.height = innerHeight+"px";
   sctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  flakes = Array.from({length:120}, ()=>({
-    x: Math.random()*innerWidth,
-    y: Math.random()*innerHeight,
-    r: 1+Math.random()*2.6,
-    vy: 0.4+Math.random()*1.1,
-    vx: -0.25+Math.random()*0.5,
-    a: 0.35+Math.random()*0.6
-  }));
+  flakes = Array.from({length:120}, ()=>(
+    {
+      x: Math.random()*innerWidth,
+      y: Math.random()*innerHeight,
+      r: 1+Math.random()*2.6,
+      vy: 0.4+Math.random()*1.1,
+      vx: -0.25+Math.random()*0.5,
+      a: 0.35+Math.random()*0.6
+    }
+  ));
 }
 addEventListener("resize", resizeSnow);
 resizeSnow();
@@ -920,6 +942,96 @@ function computeExportTransform(outW,outH){
   return {sx: outW/cur.w, sy: outH/cur.h};
 }
 
+function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(" ");
+  let line = "";
+  let yy = y;
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && n > 0) {
+      ctx.fillText(line, x, yy);
+      line = words[n] + " ";
+      yy += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, yy);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  const rr = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr,y);
+  ctx.arcTo(x+w,y,x+w,y+h,rr);
+  ctx.arcTo(x+w,y+h,x,y+h,rr);
+  ctx.arcTo(x,y+h,x,y,rr);
+  ctx.arcTo(x,y,x+w,y,rr);
+  ctx.closePath();
+}
+
+function drawChip(ctx, x, y, emoji, label, value, maxW){
+  ctx.save();
+  ctx.textAlign="left";
+  ctx.textBaseline="middle";
+
+  const padL = 18, padR = 18;
+  const iconW = 26;
+  const gap = 8;
+
+  // label
+  ctx.font = "600 16px ui-sans-serif, system-ui, Segoe UI";
+  const wLabel = ctx.measureText(label).width;
+
+  // value (may be long) — clamp
+  ctx.font = "500 16px ui-sans-serif, system-ui, Segoe UI";
+  let v = String(value || "");
+  const ell = "…";
+  const maxValueW = Math.max(80, (maxW ?? 520) - (padL + iconW + gap + wLabel + 10 + padR));
+  while(ctx.measureText(v).width > maxValueW && v.length > 1){
+    v = v.slice(0, -2).trimEnd() + ell;
+  }
+  const wValue = ctx.measureText(v).width;
+
+  const w = padL + iconW + gap + wLabel + 10 + wValue + padR;
+  const h = 44;
+
+  // chip body
+  ctx.fillStyle="rgba(255,255,255,.78)";
+  ctx.strokeStyle="rgba(0,0,0,.08)";
+  ctx.lineWidth=2;
+  ctx.shadowColor="rgba(0,0,0,.10)";
+  ctx.shadowBlur=18;
+  ctx.shadowOffsetY=12;
+  roundRect(ctx, x-w/2, y-h/2, w, h, 999);
+  ctx.fill(); ctx.stroke();
+
+  // content
+  ctx.shadowColor="transparent";
+  ctx.fillStyle="#2a2a2a";
+
+  ctx.font = "18px Apple Color Emoji, Segoe UI Emoji";
+  ctx.fillText(emoji, x-w/2+padL, y+1);
+
+  ctx.font = "600 16px ui-sans-serif, system-ui, Segoe UI";
+  ctx.fillText(label, x-w/2+padL+iconW, y+1);
+
+  ctx.font = "500 16px ui-sans-serif, system-ui, Segoe UI";
+  ctx.fillText(v, x-w/2+padL+iconW+wLabel+10, y+1);
+
+  ctx.restore();
+  return w;
+}
+
+function roundImage(ctx, img, x, y, w, h, r){
+  ctx.save();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  ctx.drawImage(img, x, y, w, h);
+  ctx.restore();
+}
+
 async function exportPNG(){
   clearError();
   const [outW,outH] = formatSel.value.split("x").map(n=>parseInt(n,10));
@@ -927,11 +1039,11 @@ async function exportPNG(){
   c.width = outW; c.height = outH;
   const ctx = c.getContext("2d");
 
-  // background (mniej żółta)
+  // background
   ctx.fillStyle = "#fffdf8";
   ctx.fillRect(0,0,outW,outH);
 
-  // "świąteczne" gradienty (czerwony + zielony)
+  // gradients
   const g1 = ctx.createRadialGradient(outW*0.2,outH*0.28, 10, outW*0.2,outH*0.28, Math.max(outW,outH)*0.95);
   g1.addColorStop(0, "rgba(255,95,120,.28)");
   g1.addColorStop(1, "rgba(255,255,255,0)");
@@ -942,7 +1054,7 @@ async function exportPNG(){
   g2.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = g2; ctx.fillRect(0,0,outW,outH);
 
-  // watermark (bez obrotu)
+  // watermark
   try{
     const wmUrl = requireAssetOrExplain(ASSET_NAMES.watermark) || resolveAsset(ASSET_NAMES.watermark);
     const wm = await loadImage(wmUrl);
@@ -958,27 +1070,36 @@ async function exportPNG(){
     ctx.restore();
   }catch(e){ /* ignore */ }
 
-  // headline + deck + chips
+  // headline + chips only (deck + funding NIE są drukowane)
   ctx.save();
   ctx.fillStyle = "#173b2e";
   ctx.textAlign="center";
   ctx.font = "900 "+Math.round(outW*0.055)+"px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText("Wesołych Świąt od POL3D!", outW/2, outH*0.14);
-
-  ctx.fillStyle = "#3a3a3a";
-  ctx.font = "500 "+Math.round(outW*0.022)+"px ui-sans-serif, system-ui, Segoe UI";
-  const deck = "Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.";
-  wrapText(ctx, deck, outW/2, outH*0.19, outW*0.78, Math.round(outW*0.03));
+  ctx.fillText(UI_HEADLINE, outW/2, outH*0.14);
 
   const toV = document.getElementById("toField").value;
   const fromV = document.getElementById("fromField").value;
-  drawChip(ctx, outW*0.40, outH*0.28, "🌟", "Dla:", toV);
-  drawChip(ctx, outW*0.60, outH*0.28, "🎁", "Od:", fromV);
 
-  // funding (stopka)
-  ctx.fillStyle = "rgba(35,55,45,.72)";
-  ctx.font = "600 "+Math.round(outW*0.016)+"px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText("Projekt został dofinansowany przez Polonijne Inicjatywy Przedsiębiorcze.", outW/2, outH*0.95);
+  // chips: dynamic layout (no collision)
+  const y = outH*0.28;
+  const maxChipW = outW*0.45;
+  const wA = measureChipWidth(ctx, "🌟", "Dla:", toV, maxChipW);
+  const wB = measureChipWidth(ctx, "🎁", "Od:", fromV, maxChipW);
+  const gap = Math.max(18, outW*0.03);
+  const total = wA + gap + wB;
+
+  let xA, xB;
+  if(total <= outW*0.86){
+    xA = outW/2 - (total/2) + wA/2;
+    xB = xA + wA/2 + gap + wB/2;
+    drawChip(ctx, xA, y, "🌟", "Dla:", toV, maxChipW);
+    drawChip(ctx, xB, y, "🎁", "Od:", fromV, maxChipW);
+  }else{
+    // stacked (mobile-safe)
+    const cyGap = Math.max(14, outW*0.018);
+    drawChip(ctx, outW/2, y, "🌟", "Dla:", toV, outW*0.80);
+    drawChip(ctx, outW/2, y + 44 + cyGap, "🎁", "Od:", fromV, outW*0.80);
+  }
   ctx.restore();
 
   const {sx,sy} = computeExportTransform(outW,outH);
@@ -1044,7 +1165,6 @@ async function exportPNG(){
   ctx.stroke();
   ctx.restore();
 
-  // IMPORTANT: export via Blob + modal
   try{
     const blob = await new Promise((res)=>c.toBlob(res, "image/png"));
     if(!blob) throw new Error("toBlob() zwrócił null.");
@@ -1058,6 +1178,25 @@ async function exportPNG(){
       showError("Eksport PNG nie powiódł się.", err);
     }
   }
+}
+
+function measureChipWidth(ctx, emoji, label, value, maxW){
+  ctx.save();
+  const padL = 18, padR = 18;
+  const iconW = 26;
+  const gap = 8;
+  ctx.font = "600 16px ui-sans-serif, system-ui, Segoe UI";
+  const wLabel = ctx.measureText(label).width;
+  ctx.font = "500 16px ui-sans-serif, system-ui, Segoe UI";
+  const maxValueW = Math.max(80, (maxW ?? 520) - (padL + iconW + gap + wLabel + 10 + padR));
+  let v = String(value || "");
+  while(ctx.measureText(v).width > maxValueW && v.length > 1){
+    v = v.slice(0, -2).trimEnd() + "…";
+  }
+  const wValue = ctx.measureText(v).width;
+  const w = padL + iconW + gap + wLabel + 10 + wValue + padR;
+  ctx.restore();
+  return w;
 }
 
 let lastExportFile = null;
@@ -1089,7 +1228,6 @@ function openExportModal(objectUrl, file){
   modal.style.display = "flex";
 }
 
-
 document.getElementById("closeModal").onclick=()=>{
   document.getElementById("modal").style.display="none";
   if(lastExportObjectUrl && lastExportObjectUrl.startsWith("blob:")){
@@ -1100,6 +1238,7 @@ document.getElementById("closeModal").onclick=()=>{
   const st = document.getElementById("sendStatus");
   if(st) st.textContent = "";
 };
+
 /* ========= SEND / SHARE ========= */
 const SEND_ENDPOINT = "/.netlify/functions/send-card";
 
@@ -1162,69 +1301,6 @@ document.getElementById("shareBtn").onclick = async ()=>{
   }
 };
 
-function roundRect(ctx,x,y,w,h,r){
-  const rr = Math.min(r, w/2, h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr,y);
-  ctx.arcTo(x+w,y,x+w,y+h,rr);
-  ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y+h,x,y,rr);
-  ctx.arcTo(x,y,x+w,y,rr);
-  ctx.closePath();
-}
-function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-  const words = text.split(" ");
-  let line = "";
-  let yy = y;
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, x, yy);
-      line = words[n] + " ";
-      yy += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, yy);
-}
-function drawChip(ctx, x, y, emoji, label, value){
-  ctx.save();
-  ctx.font = "600 18px ui-sans-serif, system-ui, Segoe UI";
-  const txt = label+" "+value;
-  const w = ctx.measureText(txt).width + 60;
-  const h = 44;
-  ctx.fillStyle="rgba(255,255,255,.78)";
-  ctx.strokeStyle="rgba(0,0,0,.08)";
-  ctx.lineWidth=2;
-  ctx.shadowColor="rgba(0,0,0,.10)";
-  ctx.shadowBlur=18;
-  ctx.shadowOffsetY=12;
-  roundRect(ctx, x-w/2, y-h/2, w, h, 999);
-  ctx.fill(); ctx.stroke();
-  ctx.shadowColor="transparent";
-  ctx.fillStyle="#2a2a2a";
-  ctx.textAlign="left";
-  ctx.textBaseline="middle";
-  ctx.font = "18px Apple Color Emoji, Segoe UI Emoji";
-  ctx.fillText(emoji, x-w/2+18, y+1);
-  ctx.font = "600 16px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText(label, x-w/2+46, y+1);
-  ctx.font = "500 16px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText(value, x-w/2+90, y+1);
-  ctx.restore();
-}
-function roundImage(ctx, img, x, y, w, h, r){
-  ctx.save();
-  roundRect(ctx, x, y, w, h, r);
-  ctx.clip();
-  ctx.drawImage(img, x, y, w, h);
-  ctx.restore();
-}
-
-document.getElementById("exportBtn").onclick=exportPNG;
-
 /* ========= FORMAT CHANGE ========= */
 formatSel.addEventListener("change", ()=>{
   const before = currentCardSize();
@@ -1286,6 +1362,8 @@ if(location.protocol !== "file:"){
 /* ========= MAIN TICK ========= */
 function tick(){ renderAll(); requestAnimationFrame(tick); }
 tick();
+
+document.getElementById("exportBtn").onclick=exportPNG;
 </script>
 </body>
 </html>
