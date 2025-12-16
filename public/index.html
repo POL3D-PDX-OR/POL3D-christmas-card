@@ -8,7 +8,9 @@
   :root{
     --bg1:#143b2a; --bg2:#8b0f1a;
     --panel:rgba(20,20,24,.42);
-    --card:#fff7ea; --ink:#173b2e;
+    /* mniej żółta baza kartki */
+    --card:#fffdf8;
+    --ink:#173b2e;
   }
   *{box-sizing:border-box}
   body{
@@ -123,21 +125,22 @@
   .card{
     position:absolute; inset:0;
     border-radius:28px;
+    /* bardziej "świątecznie" (zielony + czerwony + biel), bez żółtej dominanty */
     background:
-      radial-gradient(800px 520px at 20% 30%, rgba(255,210,230,.65), transparent 60%),
-      radial-gradient(820px 560px at 80% 22%, rgba(255,230,160,.72), transparent 60%),
-      radial-gradient(520px 520px at 50% 80%, rgba(255,255,255,.85), rgba(255,255,255,.65) 60%, rgba(255,255,255,.55));
+      radial-gradient(820px 560px at 20% 28%, rgba(255,95,120,.28), transparent 60%),
+      radial-gradient(820px 560px at 82% 20%, rgba(60,210,130,.24), transparent 60%),
+      radial-gradient(540px 540px at 50% 82%, rgba(255,255,255,.92), rgba(255,255,255,.72) 60%, rgba(255,255,255,.62));
     box-shadow:
       0 40px 120px rgba(0,0,0,.45),
       0 10px 40px rgba(0,0,0,.25);
-    border:6px solid rgba(255,244,220,.95);
+    border:6px solid rgba(255,255,255,.92);
     overflow:hidden;
   }
   .card:before{
     content:"";
     position:absolute; inset:10px;
     border-radius:22px;
-    border:2px dashed rgba(150,120,90,.35);
+    border:2px dashed rgba(40,70,55,.22);
     pointer-events:none;
     z-index:2;
   }
@@ -148,7 +151,8 @@
     background-repeat:no-repeat;
     background-position:center;
     background-size: var(--wmSize, 82%) auto;
-    transform: rotate(var(--wmRot, -2deg));
+    /* domyślnie prosto */
+    transform: rotate(var(--wmRot, 0deg));
     z-index:1;
   }
   .lights{
@@ -201,6 +205,17 @@
     background:transparent;
     border:none; color:#2a2a2a;
     padding:0; font-size:14px; outline:none;
+  }
+
+  /* stopka dofinansowania (na kartce) */
+  .funding{
+    position:absolute;
+    left:54px; right:54px; bottom:18px;
+    text-align:center;
+    font-size:12px;
+    letter-spacing:.15px;
+    color: rgba(35,55,45,.70);
+    text-shadow: 0 1px 0 rgba(255,255,255,.55);
   }
 
   /* sticker elements layer (CRITICAL FIX) */
@@ -301,7 +316,7 @@
 <header>
   <div class="title">
     <h1>POL3D — Polska w trzech wymiarach</h1>
-    <p class="sub">Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż kartkę jak naklejki i wyślij dalej.</p>
+    <p class="sub">Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę dodając naklejki i własne grafiki lub zdjęcia. Gotową kartkę wyślij dalej.</p>
   </div>
   <div class="actions">
     <div class="pill" id="toggleSnow">Śnieg: ON</div>
@@ -333,7 +348,7 @@
       </details>
     </div>
 
-<div class="section">
+    <div class="section">
       <h2>Naklejki POL3D — układanka logo</h2>
       <div class="grid2" id="logoTiles"></div>
       <div style="height:10px"></div>
@@ -392,13 +407,12 @@
         <div class="lights" id="lights"></div>
         <div class="card-ui">
           <div class="headline">Wesołych Świąt od POL3D!</div>
-          <div class="deck">
-            POL3D to projekt młodzieży z Polskiej Szkoły w Portland: od pomysłu, przez prototyp, aż po sprzedaż. Z tej okazji — baw się kartką i rozsyłaj dalej.
-          </div>
+          <div class="deck">Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.</div>
           <div class="tofrom">
             <div class="chip"><b>🌟 Dla:</b><input id="toField" value="Rodziny i Przyjaciół"/></div>
             <div class="chip"><b>🎁 Od:</b><input id="fromField" value="Zespół POL3D"/></div>
           </div>
+          <div class="funding">Projekt został dofinansowany przez Polonijne Inicjatywy Przedsiębiorcze.</div>
         </div>
       </div>
     </div>
@@ -461,7 +475,7 @@ function showError(msg, err){
   el.innerHTML = "<b>BŁĄD JS:</b> " + escapeHtml(msg) + (extra ? "<br><code>" + escapeHtml(extra) + "</code>" : "");
 }
 function clearError(){ document.getElementById("errbar").style.display = "none"; }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>\"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
 window.addEventListener("error", (e)=>{ showError(e.message || "Nieznany błąd", e.error); });
 window.addEventListener("unhandledrejection", (e)=>{ showError("Promise rejection", e.reason); });
 
@@ -615,7 +629,8 @@ function wireDrag(el){
     if(Number(el.dataset.id)!==state.selectedId) return;
     ev.preventDefault();
     const e = state.elems.find(x=>x.id===state.selectedId);
-    const ds = ev.deltaY>0 ? -0.06 : 0.06;
+    // mniejszy krok skali (precyzja dopasowania "O-emoji")
+    const ds = ev.deltaY>0 ? -0.02 : 0.02;
     e.s = clamp(e.s + ds, 0.08, 6.0);
   }, {passive:false});
   el.addEventListener("click", (ev)=>{
@@ -742,7 +757,8 @@ function applyWatermark(){
   const url = assetMap.has(ASSET_NAMES.watermark) ? assetMap.get(ASSET_NAMES.watermark) : resolveAsset(ASSET_NAMES.watermark);
   wmDiv.style.backgroundImage = `url("${url}")`;
   wmDiv.style.setProperty("--wmSize", "82%");
-  wmDiv.style.setProperty("--wmRot", "-2deg");
+  // bez pochylenia
+  wmDiv.style.setProperty("--wmRot", "0deg");
 }
 
 /* ========= LIGHTS ========= */
@@ -808,8 +824,9 @@ function bring(delta){
   const e=sel(); if(!e) return;
   e.z += delta;
 }
-document.getElementById("bPlus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s+0.12,0.08,6); };
-document.getElementById("bMinus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s-0.12,0.08,6); };
+// mniejszy krok przy +/- (precyzja)
+document.getElementById("bPlus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s+0.04,0.08,6); };
+document.getElementById("bMinus").onclick=()=>{ const e=sel(); if(e) e.s=clamp(e.s-0.04,0.08,6); };
 document.getElementById("bRot").onclick=()=>{ const e=sel(); if(e) e.r = (e.r+10)%360; };
 document.getElementById("bUp").onclick=()=>bring(1);
 document.getElementById("bDown").onclick=()=>bring(-1);
@@ -889,9 +906,8 @@ document.getElementById("toggleSound").onclick=()=>{
 async function loadImage(src){
   return new Promise((res, rej)=>{
     const img = new Image();
-    // For http://localhost, allow same-origin; for file input objectURLs, it's safe.
     img.onload=()=>res(img);
-    img.onerror=(e)=>rej(new Error("Nie udało się wczytać obrazu: "+src));
+    img.onerror=()=>rej(new Error("Nie udało się wczytać obrazu: "+src));
     img.src=src;
   });
 }
@@ -911,22 +927,22 @@ async function exportPNG(){
   c.width = outW; c.height = outH;
   const ctx = c.getContext("2d");
 
-  // background
-  ctx.fillStyle = "#fff7ea";
+  // background (mniej żółta)
+  ctx.fillStyle = "#fffdf8";
   ctx.fillRect(0,0,outW,outH);
 
-  // warm gradients
-  const g1 = ctx.createRadialGradient(outW*0.2,outH*0.3, 10, outW*0.2,outH*0.3, Math.max(outW,outH)*0.9);
-  g1.addColorStop(0, "rgba(255,210,230,.65)");
+  // "świąteczne" gradienty (czerwony + zielony)
+  const g1 = ctx.createRadialGradient(outW*0.2,outH*0.28, 10, outW*0.2,outH*0.28, Math.max(outW,outH)*0.95);
+  g1.addColorStop(0, "rgba(255,95,120,.28)");
   g1.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = g1; ctx.fillRect(0,0,outW,outH);
 
-  const g2 = ctx.createRadialGradient(outW*0.8,outH*0.22, 10, outW*0.8,outH*0.22, Math.max(outW,outH)*0.9);
-  g2.addColorStop(0, "rgba(255,230,160,.72)");
+  const g2 = ctx.createRadialGradient(outW*0.82,outH*0.20, 10, outW*0.82,outH*0.20, Math.max(outW,outH)*0.95);
+  g2.addColorStop(0, "rgba(60,210,130,.24)");
   g2.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = g2; ctx.fillRect(0,0,outW,outH);
 
-  // watermark
+  // watermark (bez obrotu)
   try{
     const wmUrl = requireAssetOrExplain(ASSET_NAMES.watermark) || resolveAsset(ASSET_NAMES.watermark);
     const wm = await loadImage(wmUrl);
@@ -936,7 +952,7 @@ async function exportPNG(){
     const hh = wm.height*scale;
     ctx.save();
     ctx.translate(outW/2, outH/2);
-    ctx.rotate(-2*Math.PI/180);
+    ctx.rotate(0);
     ctx.globalAlpha = 0.16;
     ctx.drawImage(wm, -ww/2, -hh/2, ww, hh);
     ctx.restore();
@@ -951,13 +967,18 @@ async function exportPNG(){
 
   ctx.fillStyle = "#3a3a3a";
   ctx.font = "500 "+Math.round(outW*0.022)+"px ui-sans-serif, system-ui, Segoe UI";
-  const deck = "POL3D to projekt młodzieży z Polskiej Szkoły w Portland: od pomysłu, przez prototyp, aż po sprzedaż. Z tej okazji — baw się kartką i rozsyłaj dalej.";
+  const deck = "Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.";
   wrapText(ctx, deck, outW/2, outH*0.19, outW*0.78, Math.round(outW*0.03));
 
   const toV = document.getElementById("toField").value;
   const fromV = document.getElementById("fromField").value;
   drawChip(ctx, outW*0.40, outH*0.28, "🌟", "Dla:", toV);
   drawChip(ctx, outW*0.60, outH*0.28, "🎁", "Od:", fromV);
+
+  // funding (stopka)
+  ctx.fillStyle = "rgba(35,55,45,.72)";
+  ctx.font = "600 "+Math.round(outW*0.016)+"px ui-sans-serif, system-ui, Segoe UI";
+  ctx.fillText("Projekt został dofinansowany przez Polonijne Inicjatywy Przedsiębiorcze.", outW/2, outH*0.95);
   ctx.restore();
 
   const {sx,sy} = computeExportTransform(outW,outH);
@@ -1013,17 +1034,17 @@ async function exportPNG(){
   // border
   ctx.save();
   ctx.lineWidth = Math.round(outW*0.012);
-  ctx.strokeStyle = "rgba(255,244,220,.95)";
+  ctx.strokeStyle = "rgba(255,255,255,.92)";
   roundRect(ctx, ctx.lineWidth/2, ctx.lineWidth/2, outW-ctx.lineWidth, outH-ctx.lineWidth, 28);
   ctx.stroke();
   ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(150,120,90,.35)";
+  ctx.strokeStyle = "rgba(40,70,55,.22)";
   roundRect(ctx, 10, 10, outW-20, outH-20, 22);
   ctx.setLineDash([8,10]);
   ctx.stroke();
   ctx.restore();
 
-  // IMPORTANT: export via Blob + modal (prevents blocked auto-download)
+  // IMPORTANT: export via Blob + modal
   try{
     const blob = await new Promise((res)=>c.toBlob(res, "image/png"));
     if(!blob) throw new Error("toBlob() zwrócił null.");
@@ -1031,7 +1052,6 @@ async function exportPNG(){
     const file = new File([blob], "POL3D_kartka.png", {type:"image/png"});
     openExportModal(url, file);
   }catch(err){
-    // If we hit SecurityError, explain exact cause
     if(err && (err.name==="SecurityError" || String(err).includes("SecurityError"))){
       showError("SecurityError przy eksporcie. Jeśli otwierasz HTML przez file:// i używasz obrazów z dysku, przeglądarka blokuje odczyt canvas. Rozwiązanie: wybierz folder z assetami (po lewej) albo uruchom przez http://localhost.", err);
     }else{
@@ -1050,9 +1070,8 @@ function openExportModal(objectUrl, file){
   const status = document.getElementById("sendStatus");
   const shareBtn = document.getElementById("shareBtn");
 
-  // cleanup previous URL
   if(lastExportObjectUrl && lastExportObjectUrl.startsWith("blob:")){
-    try{ URL.revokeObjectURL(lastExportObjectUrl); }catch(_){}
+    try{ URL.revokeObjectURL(lastExportObjectUrl); }catch(_){ }
   }
 
   lastExportFile = file || null;
@@ -1082,8 +1101,6 @@ document.getElementById("closeModal").onclick=()=>{
   if(st) st.textContent = "";
 };
 /* ========= SEND / SHARE ========= */
-// Configure a backend endpoint if you want true email sending with attachment.
-// Example: "/.netlify/functions/send-card" (Netlify Function) or "/api/send-card" (via redirects). Leave as empty to disable backend sending.
 const SEND_ENDPOINT = "/.netlify/functions/send-card";
 
 async function fileToBase64DataURL(file){
@@ -1097,7 +1114,6 @@ async function fileToBase64DataURL(file){
 
 async function sendEmailViaEndpoint(to, file){
   if(!SEND_ENDPOINT) throw new Error("Brak skonfigurowanego endpointu do wysyłki.");
-  // Send JSON (no multipart parsing needed on the serverless side)
   const dataUrl = await fileToBase64DataURL(file);
   const base64 = (dataUrl.split(",")[1] || "").trim();
   if(!base64) throw new Error("Nie udało się zakodować pliku PNG.");
@@ -1119,7 +1135,7 @@ document.getElementById("sendEmailBtn").onclick = async ()=>{
   try{
     clearError();
     const to = (document.getElementById("emailTo").value || "").trim();
-    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”).");
+    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”)." );
     if(!to) throw new Error("Wpisz adres e-mail odbiorcy.");
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("Adres e-mail wygląda na niepoprawny.");
 
@@ -1135,7 +1151,7 @@ document.getElementById("shareBtn").onclick = async ()=>{
   const status = document.getElementById("sendStatus");
   try{
     clearError();
-    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”).");
+    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”)." );
     if(!(navigator.share && navigator.canShare && navigator.canShare({files:[lastExportFile]}))){
       throw new Error("Udostępnianie plików nie jest wspierane w tej przeglądarce lub wymaga HTTPS.");
     }
@@ -1145,7 +1161,6 @@ document.getElementById("shareBtn").onclick = async ()=>{
     if(status) status.textContent = "Nie udostępniono: " + (err?.message || String(err));
   }
 };
-
 
 function roundRect(ctx,x,y,w,h,r){
   const rr = Math.min(r, w/2, h/2);
@@ -1230,27 +1245,22 @@ document.getElementById("assetFolder").addEventListener("change", async (ev)=>{
   try{
     clearError();
     const files = Array.from(ev.target.files || []);
-    // cleanup previous objectURLs
     for(const [k,v] of assetMap.entries()){
       if(typeof v === "string" && v.startsWith("blob:")) URL.revokeObjectURL(v);
     }
     assetMap.clear();
 
     for(const f of files){
-      // keep only filename (folder path irrelevant)
       const name = f.name;
-      // map only png/jpg/webp (ignore others)
       if(!/\.(png|jpg|jpeg|webp|gif)$/i.test(name)) continue;
       const url = URL.createObjectURL(f);
       assetMap.set(name, url);
     }
 
-    // status
     const needed = Object.values(ASSET_NAMES);
     const have = needed.filter(n=>assetMap.has(n)).length;
     assetStatus.textContent = have + "/" + needed.length;
 
-    // re-init UI that uses assets
     initTiles();
     applyWatermark();
 
