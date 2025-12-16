@@ -161,10 +161,10 @@ exports.handler = async (event) => {
   const filmUrl = "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
 
   const next1 = "To dopiero początek. W planach mamy uruchomienie sklepu internetowego oraz obecność na Polskim Festiwalu w Portland (Oregon).";
-  const contact = "Kontakt: info.pol3d@gmail.com";
+  const contact = "Kontakt: info.pol3d@gmail.com\n szkolapolskapdx@gmail.com";
 
   const close1 = "Dziękujemy za chwilę uwagi i życzymy spokojnych, radosnych Świąt oraz wszystkiego dobrego w Nowym Roku.";
-  const sign = "Zespół POL3D — Polska w trzech wymiarach\nPortland, Oregon";
+  const sign = "Zespół POL3D — Polska w trzech wymiarach\n przy Polish Cultural Enrichment Program at PLBA - Polska Szkola\nPortland, Oregon";
 
   const html = `
   <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.55; color:#111;">
@@ -189,10 +189,10 @@ exports.handler = async (event) => {
     <p style="margin:0 0 8px 0;">${escapeHtml(story1)}</p>
     <p style="margin:0 0 8px 0;">${escapeHtml(story2)} <a href="${grantUrl}">${grantUrl}</a></p>
 
-    <h3 style="margin:18px 0 8px 0;">Dowód działania</h3>
+    <h3 style="margin:18px 0 8px 0;">Pierwsze kroki i debiut</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof1)}</p>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof2)}</p>
-    <p style="margin:0 0 8px 0;">🎥 Film (placeholder): <a href="${filmUrl}">${filmUrl}</a></p>
+    <p style="margin:0 0 8px 0;">🎥 Obejrzyj nasz pierwszy Film promocyjny: <a href="${filmUrl}">${filmUrl}</a></p>
 
     <h3 style="margin:18px 0 8px 0;">Co dalej</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(next1)}</p>
