@@ -1,134 +1,215 @@
-// netlify/functions/send-card.mjs
+/**
+ * Netlify Function: /.netlify/functions/send-card
+ * Wysyła e-mail z załącznikiem PNG przez Resend.
+ *
+ * Wersja piewsza dzialajaca.
+ * Opcjonalne ENV:
+ * - RESEND_FROM = np. "Kartka POL3D <kartka@pol3d.com>"  (MUSI być w zweryfikowanej domenie w Resend)
+ * - RESEND_REPLY_TO = np. "info.pol3d@gmail.com"
+ * - RESEND_SUBJECT = np. "POL3D — Twoja kartka świąteczna"
+ */
 
-import { Resend } from "resend";
+const JSON_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+};
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-function json(statusCode, obj) {
-  return new Response(JSON.stringify(obj, null, 2), {
-    status: statusCode,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-    },
-  });
+function corsHeaders(origin) {
+  // Jeśli chcesz ograniczyć domeny, wpisz tu konkretnie np. https://pol3d.com
+  const allowOrigin = origin || "*";
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
 }
 
-function asTextSafe(v) {
-  return String(v ?? "").trim();
+function isValidEmail(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
 }
 
-/* ==========================================================
-   JEDYNE MIEJSCE DO EDYCJI TREŚCI E-MAILA
-   ========================================================== */
-function buildEmail({ senderName }) {
-  const subject = "🎄 Świąteczna kartka od POL3D";
-
-  const intro = senderName
-    ? `Otrzymałeś tę kartkę, ponieważ <b>${escapeHtml(senderName)}</b> postanowił(a) podzielić się z Tobą świątecznymi życzeniami.`
-    : `Otrzymałeś tę kartkę, ponieważ ktoś bliski postanowił podzielić się z Tobą świątecznymi życzeniami.`;
-
-  const filmUrl = "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
-  const grantUrl = "https://przedsiebiorczydzek.pl/polonia/";
-
-  const html = `<!doctype html>
-<html lang="pl">
-<body style="font-family:system-ui,Segoe UI,Arial,sans-serif;background:#f6f6f6;padding:24px;">
-  <div style="max-width:720px;margin:auto;background:#ffffff;border-radius:14px;padding:24px;">
-
-    <h2>Serdeczne życzenia od zespołu POL3D</h2>
-
-    <p>${intro}</p>
-
-    <p>Cieszymy się, że możemy uczestniczyć w dzieleniu się życzeniami i dobrem.
-    Życzymy Wesołych Świąt oraz wszystkiego najlepszego w Nowym Roku.</p>
-
-    <p><b>📎 Otwórz załączoną kartkę PNG</b>, aby zobaczyć świąteczne życzenia.</p>
-
-    <p>Chcesz wysłać własną kartkę?
-    Wejdź na <a href="https://pol3d.com">pol3d.com</a>, ułóż własną kartkę,
-    dodaj tekst, naklejki i zdjęcia — i wyślij ją dalej.</p>
-
-    <hr />
-
-    <h3>POL3D — Polska w trzech wymiarach</h3>
-
-    <p>POL3D to grupa polskich nastolatków działająca przy Polskiej Szkole w Portland (Oregon, USA),
-    powstała jako inicjatywa młodych przedsiębiorców.</p>
-
-    <p>Projektujemy i wykonujemy gadżety oraz upominki 3D promujące polską kulturę i tradycję.
-    Działamy w zespołach design, technicznym (druk 3D) oraz marketingowym.</p>
-
-    <p>Naszą przygodę rozpoczęliśmy w październiku 2025 roku dzięki grantowi
-    <a href="${grantUrl}">Polonijna Akademia Przedsiębiorczości</a>.
-    Polska Szkoła w Portland otrzymała środki na zakup drukarki 3D i materiałów.</p>
-
-    <p>Pierwsza prezentacja naszych produktów odbyła się podczas
-    Kiermaszu Świątecznego w Domu Polskim w Portland (14 grudnia 2025).
-    <br />🎥 <a href="${filmUrl}">Zobacz film</a></p>
-
-    <p>To dopiero początek — realizujemy zamówienia indywidualne i planujemy sklep online.
-    Kontakt: <a href="mailto:info.pol3d@gmail.com">info.pol3d@gmail.com</a></p>
-
-    <p><b>Zespół POL3D — Portland, Oregon</b></p>
-  </div>
-</body>
-</html>`;
-
-  const text = `Serdeczne życzenia od zespołu POL3D
-
-${senderName ? `Kartkę przesyła: ${senderName}` : "Kartkę przesłała osoba bliska."}
-
-Otwórz załączoną kartkę PNG, aby zobaczyć życzenia.
-
-Chcesz stworzyć własną kartkę? Wejdź na https://pol3d.com
-
-POL3D — Polska w trzech wymiarach
-Portland, Oregon
-Kontakt: info.pol3d@gmail.com`;
-
-  return { subject, html, text };
-}
-
-function escapeHtml(str) {
-  return String(str ?? "").replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
-  );
-}
-
-export default async (req) => {
+function safeJsonParse(body) {
   try {
-    if (req.method === "OPTIONS") return json(200, { ok: true });
-    if (req.method !== "POST") return json(405, { error: "Method Not Allowed" });
+    return { ok: true, value: JSON.parse(body || "{}") };
+  } catch (e) {
+    return { ok: false, error: e };
+  }
+}
 
-    const from = asTextSafe(process.env.RESEND_FROM);
-    if (!from) {
-      return json(500, { error: "Brak RESEND_FROM (np. POL3D <kartka@pol3d.com>)" });
-    }
+function stripDataUrlPrefix(base64OrDataUrl) {
+  const s = String(base64OrDataUrl || "").trim();
+  if (!s) return "";
+  // jeśli przyjdzie dataURL: data:image/png;base64,AAAA...
+  const commaIdx = s.indexOf(",");
+  if (s.startsWith("data:") && commaIdx !== -1) return s.slice(commaIdx + 1).trim();
+  return s;
+}
 
-    const body = await req.json();
-    const to = asTextSafe(body.to);
-    const base64 = asTextSafe(body.base64);
-    const filename = body.filename || "POL3D_kartka.png";
+exports.handler = async (event) => {
+  const origin = event.headers?.origin || event.headers?.Origin;
+  const cors = corsHeaders(origin);
 
-    if (!to || !base64) return json(400, { error: "Brak danych wejściowych." });
+  // Preflight
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: { ...cors } };
+  }
 
-    const buffer = Buffer.from(base64, "base64");
-    const { subject, html, text } = buildEmail({ senderName: body.senderName });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ error: "Method Not Allowed. Use POST." }),
+    };
+  }
 
-    const result = await resend.emails.send({
-      from,
-      to: [to],
-      subject,
-      html,
-      text,
-      attachments: [{ filename, content: buffer, contentType: "image/png" }],
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return {
+      statusCode: 500,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({
+        error: "Server misconfigured: missing RESEND_API_KEY env var.",
+      }),
+    };
+  }
+
+  // UWAGA: To jest kluczowy punkt dla Twojego 403.
+  // FROM musi być adresem w ZWERYFIKOWANEJ domenie Resend (np. @pol3d.com).
+  const from =
+    process.env.RESEND_FROM ||
+    "Kartka POL3D <kartka@pol3d.com>"; // <- jeśli Twoja zweryfikowana domena to inna (np. send.pol3d.com), zmień w ENV RESEND_FROM
+
+  const replyTo = process.env.RESEND_REPLY_TO || undefined;
+  const subject =
+    process.env.RESEND_SUBJECT || "POL3D — Twoja kartka świąteczna";
+
+  const parsed = safeJsonParse(event.body);
+  if (!parsed.ok) {
+    return {
+      statusCode: 400,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ error: "Invalid JSON body." }),
+    };
+  }
+
+  const { to, filename, mime, base64 } = parsed.value || {};
+
+  if (!isValidEmail(to)) {
+    return {
+      statusCode: 400,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ error: "Invalid recipient email address." }),
+    };
+  }
+
+  const safeName = String(filename || "POL3D_kartka.png").slice(0, 120);
+  const contentType = String(mime || "image/png").toLowerCase();
+  if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(contentType)) {
+    return {
+      statusCode: 400,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ error: "Unsupported mime type." }),
+    };
+  }
+
+  const b64 = stripDataUrlPrefix(base64);
+
+  if (!b64 || b64.length < 1000) {
+    return {
+      statusCode: 400,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ error: "Missing/invalid base64 payload." }),
+    };
+  }
+
+  // Bezpiecznik: ogranicz rozmiar (base64 jest większe niż binarka ~33%)
+  // 6 MB base64 ~ 4.5 MB PNG realnie. Dla kartek IG to aż nadto.
+  const MAX_B64_CHARS = 6_000_000;
+  if (b64.length > MAX_B64_CHARS) {
+    return {
+      statusCode: 413,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({
+        error: "Payload too large. Please export a smaller format/resolution.",
+      }),
+    };
+  }
+
+  // Zbuduj treść maila (prosto, skutecznie)
+  const html = `
+  <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.45;">
+    <h2 style="margin: 0 0 10px 0;">POL3D — kartka świąteczna</h2>
+    <p style="margin: 0 0 14px 0;">W załączniku znajdziesz wygenerowaną kartkę PNG.</p>
+    <p style="margin: 0; color:#444;">Wesołych Świąt życzy zespół POL3D!</p>
+  </div>
+  `.trim();
+
+  const text = `POL3D — kartka świąteczna
+
+W załączniku znajdziesz wygenerowaną kartkę PNG.
+
+Wesołych Świąt życzy zespół POL3D!`;
+
+  // Resend API: https://api.resend.com/emails
+  // attachments[].content = base64 (bez data:image/png;base64,)
+  const payload = {
+    from,
+    to,
+    subject,
+    html,
+    text,
+    attachments: [
+      {
+        filename: safeName,
+        content: b64,
+        content_type: contentType,
+      },
+    ],
+  };
+
+  if (replyTo) payload.reply_to = replyTo;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-    return json(200, { ok: true, result });
+    const dataText = await res.text().catch(() => "");
+    let data;
+    try { data = JSON.parse(dataText || "{}"); } catch { data = { raw: dataText }; }
+
+    if (!res.ok) {
+      // To właśnie pokaże, czy Resend nadal widzi złe FROM / domenę / itp.
+      return {
+        statusCode: res.status,
+        headers: { ...JSON_HEADERS, ...cors },
+        body: JSON.stringify({
+          error: "Resend API error",
+          status: res.status,
+          details: data,
+          hint:
+            "Jeśli widzisz 403 validation_error: sprawdź RESEND_FROM (musi być @TwojaZweryfikowanaDomena).",
+        }),
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({ ok: true, id: data?.id || null, details: data }),
+    };
   } catch (err) {
-    return json(500, { ok: false, error: err.message || String(err) });
+    return {
+      statusCode: 500,
+      headers: { ...JSON_HEADERS, ...cors },
+      body: JSON.stringify({
+        error: "Server error while sending email.",
+        message: err?.message || String(err),
+      }),
+    };
   }
 };
