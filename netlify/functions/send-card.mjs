@@ -161,7 +161,7 @@ exports.handler = async (event) => {
   const filmUrl = "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
 
   const next1 = "To dopiero początek. W planach mamy uruchomienie sklepu internetowego oraz obecność na Polskim Festiwalu w Portland (Oregon).";
-  const contact = "Kontakt: info.pol3d@gmail.com\n szkolapolskapdx@gmail.com";
+  const contact = "Kontakt: info.pol3d@gmail.com\nszkolapolskapdx@gmail.com";
 
   const close1 = "Dziękujemy za chwilę uwagi i życzymy spokojnych, radosnych Świąt oraz wszystkiego dobrego w Nowym Roku.";
   const sign = "Zespół POL3D — Polska w trzech wymiarach\n przy Polish Cultural Enrichment Program at PLBA - Polska Szkola\nPortland, Oregon";
