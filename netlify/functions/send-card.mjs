@@ -165,7 +165,7 @@ export const handler = async (event) => {
     "Stworzyliśmy własne logo, identyfikację wizualną i stronę internetową, a pierwsze projekty przekształciliśmy w realne produkty wydrukowane na drukarce 3D.";
   const proof2 =
     "Naszym pierwszym publicznym debiutem był Kiermasz Świąteczny w Domu Polskim w Portland (14 grudnia 2025), gdzie zaprezentowaliśmy nasze produkty społeczności polonijnej.";
-  const filmUrl =
+  const Url =
     "https://drive.google.com/file/d/1CjcY98qUJZJ6O_3KZs7hobXbc50QWoRm/view?usp=sharing";
 
   const next1 =
