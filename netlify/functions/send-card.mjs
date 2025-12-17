@@ -214,7 +214,7 @@ export const handler = async (event) => {
     <h3 style="margin:18px 0 8px 0;">Pierwsze kroki i debiut</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof1)}</p>
     <p style="margin:0 0 8px 0;">${escapeHtml(proof2)}</p>
-    <p style="margin:0 0 8px 0;">🎥 Film (placeholder): <a href="${filmUrl}">${filmUrl}</a></p>
+    <p style="margin:0 0 8px 0;">🎥 Film: <a href="${filmUrl}">${filmUrl}</a></p>
 
     <h3 style="margin:18px 0 8px 0;">Co dalej</h3>
     <p style="margin:0 0 8px 0;">${escapeHtml(next1)}</p>
@@ -249,7 +249,7 @@ export const handler = async (event) => {
     "Pierwsze kroki i debiut",
     proof1,
     proof2,
-    "Film (placeholder): " + filmUrl,
+    "Film: " + filmUrl,
     "",
     "Co dalej",
     next1,
