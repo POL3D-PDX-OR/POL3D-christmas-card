@@ -203,20 +203,20 @@
     padding:0; font-size:14px; outline:none;
   }
 
-  /* stopka: tylko na ekranie / projektowanie */
+  /* Stopka: tylko na ekranie / projektowanie */
   .footer{
-    position:absolute; left:54px; right:54px; bottom:26px;
+    position:absolute; left:54px; right:54px; bottom:24px;
     text-align:center;
-    font-size:14px;
-    color:rgba(40,40,40,.70);
+    font-size:16px; /* powiększona */
+    color:rgba(40,40,40,.74);
     line-height:1.35;
     user-select:none;
   }
-  .footer a{ color:rgba(40,40,40,.80); text-decoration:underline; }
-  .footer .author{ margin-top:8px; font-size:13px; color:rgba(40,40,40,.62); }
-  .footer .author a{ color:rgba(40,40,40,.70); }
+  .footer p{margin:0;}
+  .footer p + p{margin-top:10px;}
+  .footer a{ color:rgba(40,40,40,.82); text-decoration:underline; font-weight:inherit; }
+  .footer .author{ margin-top:10px; font-size:15px; color:rgba(40,40,40,.66); }
 
-  /* sticker elements layer */
   .elem{
     position:absolute;
     left:0; top:0;
@@ -336,7 +336,7 @@
           <div class="mini" style="margin-bottom:8px; opacity:.88">
             Wybierz folder z plikami graficznymi tylko wtedy, gdy otwierasz tę stronę jako <code>file://</code> i eksport PNG był blokowany.
           </div>
-          <div class="row" style="align-items:center">
+          <div class="row" style="align-items:center; display:flex; gap:10px">
             <input id="assetFolder" type="file" webkitdirectory multiple style="flex:1"/>
             <div class="pill" style="cursor:default"><span id="assetStatus">0/0</span></div>
           </div>
@@ -404,31 +404,18 @@
         <div class="lights" id="lights"></div>
 
         <div class="card-ui">
-          <div class="headline" id="headlineText">Wesołych Świąt życzy POL3D.com!</div>
+          <div class="headline" id="headlineText"></div>
 
-          <!-- To jest tylko na ekranie (projektowanie). W eksporcie PNG ten tekst nie jest rysowany. -->
-          <div class="deck" id="deckText">
-            Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.
-          </div>
+          <!-- tylko na ekranie; eksport PNG pomija -->
+          <div class="deck" id="deckText"></div>
 
           <div class="tofrom">
-            <div class="chip"><b>🌟 Dla:</b><input id="toField" value="Rodziny i Przyjaciół"/></div>
-            <div class="chip"><b>🎁 Od:</b><input id="fromField" value="Zespół POL3D"/></div>
+            <div class="chip"><b>🌟 <span id="chipToLabel"></span></b><input id="toField"/></div>
+            <div class="chip"><b>🎁 <span id="chipFromLabel"></span></b><input id="fromField"/></div>
           </div>
 
           <!-- STOPKA: tylko w projektowaniu (na ekranie) -->
-          <div class="footer" id="footerText">
-            <p style="margin:0;">
-              Projekt został dofinansowany w ramach programu „Polonijna Akademia Przedsiębiorczości” —
-              <a href="https://przedsiebiorczydzek.pl/polonia/" target="_blank" rel="noopener">przedsiebiorczydzek.pl/polonia/</a>.
-            </p>
-            <p style="margin:8px 0 0 0;">
-              Polska Szkoła w Portland otrzymała grant na zakup drukarki 3D i materiałów.
-            </p>
-            <div class="author">
-              Pomysł i wykonanie: Tomasz Wojtkowski — <a href="https://plpdx.com" target="_blank" rel="noopener">PLPDX.com</a>. Wszelkie prawa zastrzeżone.
-            </div>
-          </div>
+          <div class="footer" id="footerText"></div>
         </div>
 
       </div>
@@ -469,6 +456,30 @@
 </div>
 
 <script>
+/**
+ * COPY — jedyne miejsce, gdzie zmieniasz teksty (ekran + eksport są zawsze spójne).
+ * Uwaga: COPY.deck i COPY.footer są wyświetlane tylko w trybie projektowania (na ekranie),
+ * a eksport PNG je pomija.
+ */
+const COPY = {
+  headline: "Wesołych Świąt życzy POL3D.com!",
+  deck: "Świąteczna zabawa i premiera projektu młodzieży z Polskiej Szkoły w Portland. Ułóż własną kartkę, dodaj naklejki i własne grafiki lub zdjęcia — a gotową kartkę wyślij dalej.",
+  chipToLabel: "Dla:",
+  chipFromLabel: "Od:",
+  defaultTo: "Rodziny i Przyjaciół",
+  defaultFrom: "Zespół POL3D",
+  footer: {
+    line1Prefix: "Projekt został dofinansowany w ramach programu „Polonijna Akademia Przedsiębiorczości”.",
+    linkText: "przedsiebiorczydzek.pl/polonia/",
+    linkHref: "https://przedsiebiorczydzek.pl/polonia/",
+    line2: "Polska Szkoła w Portland otrzymała grant na zakup drukarki 3D i materiałów.",
+    authorTextPrefix: "Pomysł i wykonanie: Tomasz Wojtkowski — ",
+    authorLinkText: "PLPDX.com",
+    authorLinkHref: "https://plpdx.com",
+    authorTextSuffix: ". Wszelkie prawa zastrzeżone."
+  }
+};
+
 /* ========= ASSETS (by filename) ========= */
 const ASSET_NAMES = {
   watermark: "POL3D_WATERMARK_OUTLINES.png",
@@ -491,9 +502,33 @@ function showError(msg, err){
   el.innerHTML = "<b>BŁĄD JS:</b> " + escapeHtml(msg) + (extra ? "<br><code>" + escapeHtml(extra) + "</code>" : "");
 }
 function clearError(){ document.getElementById("errbar").style.display = "none"; }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>\"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
 window.addEventListener("error", (e)=>{ showError(e.message || "Nieznany błąd", e.error); });
 window.addEventListener("unhandledrejection", (e)=>{ showError("Promise rejection", e.reason); });
+
+/* ========= APPLY COPY TO UI ========= */
+function applyCOPY(){
+  // Headline + deck
+  document.getElementById("headlineText").textContent = COPY.headline;
+  document.getElementById("deckText").textContent = COPY.deck;
+
+  // Chip labels + defaults
+  document.getElementById("chipToLabel").textContent = COPY.chipToLabel;
+  document.getElementById("chipFromLabel").textContent = COPY.chipFromLabel;
+  const toField = document.getElementById("toField");
+  const fromField = document.getElementById("fromField");
+  if(!toField.value) toField.value = COPY.defaultTo;
+  if(!fromField.value) fromField.value = COPY.defaultFrom;
+
+  // Footer (projecting-only)
+  const f = COPY.footer;
+  const footer = document.getElementById("footerText");
+  footer.innerHTML = `
+    <p>${escapeHtml(f.line1Prefix)} <a href="${escapeHtml(f.linkHref)}" target="_blank" rel="noopener">${escapeHtml(f.linkText)}</a></p>
+    <p>${escapeHtml(f.line2)}</p>
+    <div class="author">${escapeHtml(f.authorTextPrefix)}<a href="${escapeHtml(f.authorLinkHref)}" target="_blank" rel="noopener">${escapeHtml(f.authorLinkText)}</a>${escapeHtml(f.authorTextSuffix)}</div>
+  `;
+}
 
 /* ========= RESOLVE URL ========= */
 function resolveAsset(name){
@@ -741,7 +776,7 @@ function initTiles(){
   const logoTiles = document.getElementById("logoTiles");
   logoTiles.innerHTML = "";
   logoTiles.appendChild(tileImg("POL", ASSET_NAMES.pol, ()=>addImgByName(ASSET_NAMES.pol, {isLogo:true, s:1.00, meta:{logoPart:"POL"}})));
-  logoTiles.appendChild(tileImg("Emoji „O”", ASSET_NAMES.emojiO, ()=>addImgByName(ASSET_NAMES.emojiO, {isLogo:true, s:0.82, meta:{logoPart:"O"}})));
+  logoTiles.appendChild(tileImg("Emoji „O"", ASSET_NAMES.emojiO, ()=>addImgByName(ASSET_NAMES.emojiO, {isLogo:true, s:0.82, meta:{logoPart:"O"}})));
   logoTiles.appendChild(tileImg("3D", ASSET_NAMES.threeD, ()=>addImgByName(ASSET_NAMES.threeD, {isLogo:true, s:1.00, meta:{logoPart:"3D"}})));
   logoTiles.appendChild(tileImg(".com", ASSET_NAMES.dotcom, ()=>addImgByName(ASSET_NAMES.dotcom, {isLogo:true, s:0.85, meta:{logoPart:"COM"}})));
   logoTiles.appendChild(tileImg("POLSKA…", ASSET_NAMES.tagline, ()=>addImgByName(ASSET_NAMES.tagline, {isLogo:true, s:1.15, meta:{logoPart:"TAG"}})));
@@ -788,7 +823,6 @@ function hoodFilterCSS(mode){
   if(mode==="cool") return "hue-rotate(210deg) saturate(1.10) brightness(1.06) drop-shadow(0 16px 18px rgba(0,0,0,.22))";
   return "drop-shadow(0 16px 18px rgba(0,0,0,.22))";
 }
-document.getElementById("hoodColor").addEventListener("change", ()=>{});
 
 /* ========= TEXT ADD ========= */
 document.getElementById("addTextBtn").addEventListener("click", ()=>{
@@ -962,27 +996,27 @@ async function exportPNG(){
     ctx.restore();
   }catch(e){}
 
-  // HEADLINE + CHIPS (UWAGA: deck i stopka NIE są drukowane)
+  // HEADLINE + CHIPS (deck + stopka NIE są drukowane)
   ctx.save();
   ctx.fillStyle = "#173b2e";
   ctx.textAlign="center";
   ctx.font = "900 "+Math.round(outW*0.055)+"px ui-sans-serif, system-ui, Segoe UI";
-  ctx.fillText("Wesołych Świąt życzy POL3D.com!", outW/2, outH*0.14);
+  ctx.fillText(COPY.headline, outW/2, outH*0.14);
 
   const toV = document.getElementById("toField").value;
   const fromV = document.getElementById("fromField").value;
 
-  // CHIPY: liczona szerokość + stały odstęp, żeby NIE zjeżdżały się w eksporcie
+  // Chipy: szerokość mierzona + stały odstęp
   const gap = Math.round(outW * 0.03);
-  const m1 = measureChip(ctx, "🌟", "Dla:", toV);
-  const m2 = measureChip(ctx, "🎁", "Od:", fromV);
+  const m1 = measureChip(ctx, "🌟", COPY.chipToLabel, toV);
+  const m2 = measureChip(ctx, "🎁", COPY.chipFromLabel, fromV);
   const total = m1.w + gap + m2.w;
   const x1 = outW/2 - total/2 + m1.w/2;
   const x2 = outW/2 + total/2 - m2.w/2;
   const yChips = outH*0.23;
 
-  drawChip(ctx, x1, yChips, "🌟", "Dla:", toV, m1.w);
-  drawChip(ctx, x2, yChips, "🎁", "Od:", fromV, m2.w);
+  drawChip(ctx, x1, yChips, "🌟", COPY.chipToLabel, toV, m1.w);
+  drawChip(ctx, x2, yChips, "🎁", COPY.chipFromLabel, fromV, m2.w);
 
   ctx.restore();
 
@@ -1139,7 +1173,7 @@ document.getElementById("sendEmailBtn").onclick = async ()=>{
   try{
     clearError();
     const to = (document.getElementById("emailTo").value || "").trim();
-    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”).");
+    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”)." );
     if(!to) throw new Error("Wpisz adres e-mail odbiorcy.");
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("Adres e-mail wygląda na niepoprawny.");
 
@@ -1155,7 +1189,7 @@ document.getElementById("shareBtn").onclick = async ()=>{
   const status = document.getElementById("sendStatus");
   try{
     clearError();
-    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”).");
+    if(!lastExportFile) throw new Error("Najpierw wykonaj eksport PNG (przycisk „Wyeksportuj…”)." );
     if(!(navigator.share && navigator.canShare && navigator.canShare({files:[lastExportFile]}))){
       throw new Error("Udostępnianie plików nie jest wspierane w tej przeglądarce lub wymaga HTTPS.");
     }
@@ -1176,23 +1210,6 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,rr);
   ctx.closePath();
 }
-function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-  const words = text.split(" ");
-  let line = "";
-  let yy = y;
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, x, yy);
-      line = words[n] + " ";
-      yy += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, yy);
-}
 
 /* ==== CHIP METRYKI + RYSOWANIE (eksport) ==== */
 function measureChip(ctx, emoji, label, value){
@@ -1201,7 +1218,7 @@ function measureChip(ctx, emoji, label, value){
   const wLabel = ctx.measureText(label).width;
   ctx.font = "500 16px ui-sans-serif, system-ui, Segoe UI";
   const wValue = ctx.measureText(value).width;
-  const w = Math.ceil(18 + 28 + wLabel + 10 + wValue + 22); // padding + emoji + spacing
+  const w = Math.ceil(18 + 28 + wLabel + 10 + wValue + 22);
   const h = 44;
   ctx.restore();
   return {w,h};
@@ -1297,6 +1314,7 @@ document.getElementById("assetFolder").addEventListener("change", async (ev)=>{
 });
 
 /* ========= INIT ========= */
+applyCOPY();
 initTiles();
 applyWatermark();
 assetStatus.textContent = "0/" + Object.values(ASSET_NAMES).length;
